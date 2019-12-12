@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 reqwest = "0.9.22"
+dirs = "2.0.2"
+indicatif = "0.13.0"
