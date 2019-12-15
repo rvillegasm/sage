@@ -12,6 +12,7 @@ pub struct Package {
     pub file: Option<OsString>,
 }
 
+// Public API for Package
 impl Package {
     pub fn new(name: &str, version: &str, url: &str) -> Package {
         Package {
@@ -57,7 +58,10 @@ impl Package {
         // Signal the progress bar to end
         self.finish_download_progress(pb);
     }
+}
 
+// Private API for Package
+impl Package {
     fn start_download_progress(&self) -> indicatif::ProgressBar {
         let pb = indicatif::ProgressBar::new_spinner();
         pb.enable_steady_tick(120);

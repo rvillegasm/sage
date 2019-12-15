@@ -27,7 +27,7 @@ pub struct Config {
 
 impl Config {
     pub fn new(_args: env::Args) -> Config {
-        // TODO: Check how to specify the default sage path for windows!
+        
         const DEFAULT_SAGE_HOME: &str = ".sage";
         let home: PathBuf = dirs::home_dir().unwrap();
 
