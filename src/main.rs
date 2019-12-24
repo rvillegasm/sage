@@ -11,5 +11,7 @@ fn main() {
         process::exit(1);
     };
 
-    sage::run(config).unwrap();
+    if let Err(e) = sage::run(config) {
+        eprintln!("Application Error!: {}", e);
+    };
 }
