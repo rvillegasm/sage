@@ -8,10 +8,11 @@ use std::path::Path;
 
 /// Representation of a valid `sage` package.
 pub struct Package {
-    pub name: String,
-    pub version: String,
-    pub url: String,
-    pub file: Option<OsString>,
+    name: String,
+    version: String,
+    url: String,
+    file_type: Option<String>,
+    file: Option<OsString>,
 }
 
 // Public API for Package
@@ -23,6 +24,7 @@ impl Package {
             name: name.to_string(),
             version: version.to_string(),
             url: url.to_string(),
+            file_type: None,
             file: None,
         }
     }
