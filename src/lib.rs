@@ -1,7 +1,10 @@
 extern crate dirs;
 
 mod packages;
+mod repositories;
+
 use packages::Package;
+use repositories::Repo;
 
 use std::env;
 use std::error::Error;
@@ -9,6 +12,12 @@ use std::fs;
 use std::path::PathBuf;
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let repo = Repo::new("Arcanum", "https://raw.githubusercontent.com/rvillegasm/Arcanum/master/");
+
+    let metadata = repo.get_program_metadata("Python")?;
+
+    println!("{}", metadata);
+    
     let mut pkg = Package::new(
         "Python",
         "3.8",
@@ -58,10 +67,8 @@ impl Config {
     pub fn prepare_env(&self) -> Result<(), Box<dyn Error>> {
         // Create the download dir
         fs::create_dir_all(&self.download_dir)?;
-        println!("Structure succesfully created");
         // Create the install dir
         fs::create_dir_all(&self.install_dir)?;
-        println!("Structure succesfully created");
 
         Ok(())
     }
