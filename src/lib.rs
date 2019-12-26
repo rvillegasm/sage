@@ -12,12 +12,15 @@ use std::fs;
 use std::path::PathBuf;
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let repo = Repo::new("Arcanum", "https://raw.githubusercontent.com/rvillegasm/Arcanum/master/");
+    let repo = Repo::new(
+        "Arcanum",
+        "https://raw.githubusercontent.com/rvillegasm/Arcanum/master/",
+    );
 
     let metadata = repo.get_program_metadata("Python")?;
 
     println!("{}", metadata);
-    
+
     let mut pkg = Package::new(
         "Python",
         "3.8",

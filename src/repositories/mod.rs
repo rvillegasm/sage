@@ -28,7 +28,6 @@ impl Repo {
     }
 
     pub fn get_program_metadata(&self, program_name: &str) -> Result<String, Box<dyn Error>> {
-        
         let target_url = match self.get_name() {
             "Arcanum" => format!("{}/{}/metadata.yml", self.get_base_url(), program_name),
 
