@@ -2,6 +2,7 @@ extern crate dirs;
 
 mod packages;
 mod repositories;
+mod yml_parser;
 
 use packages::Package;
 use repositories::Repo;

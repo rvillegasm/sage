@@ -27,6 +27,12 @@ impl Repo {
         &self.base_url
     }
 
+    /// Returns a Yaml-formatted string holding the metadata of a program.
+    /// 
+    /// # Errors
+    /// Check out the documentation for reqwest::get the see the conditions in which
+    /// this method could return an error.
+    /// It also fails when the repo is not valid.
     pub fn get_program_metadata(&self, program_name: &str) -> Result<String, Box<dyn Error>> {
         let target_url = match self.get_name() {
             "Arcanum" => format!("{}/{}/metadata.yml", self.get_base_url(), program_name),
