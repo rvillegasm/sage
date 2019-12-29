@@ -28,7 +28,7 @@ impl Repo {
     }
 
     /// Returns a Yaml-formatted string holding the metadata of a program.
-    /// 
+    ///
     /// # Errors
     /// Check out the documentation for reqwest::get the see the conditions in which
     /// this method could return an error.
