@@ -54,7 +54,41 @@ impl PackageParser {
 
         Ok(PackageParser { doc })
     }
+
+    /// Returns the name of the package
+    pub fn get_name(&self) -> Option<&str> {
+        let name = &self.doc["name"];
+        name.as_str()
+    }
+
+    /// Returns the version of the package
+    pub fn get_version(&self) -> Option<&str> {
+        let version = &self.doc["version"];
+        version.as_str()
+    }
+
+    /// Returns the url of the package
+    pub fn get_ulr(&self) -> Option<&str> {
+        let url = &self.doc["url"];
+        url.as_str()
+    }
+
+    /// Returns the file type of the package
+    pub fn get_file_type(&self) -> Option<&str> {
+        let file_type = &self.doc["type"];
+        file_type.as_str()
+    }
+
+    /// Returns the name of the file to be downloaded
+    pub fn get_file_name(&self) -> Option<&str> {
+        let file = &self.doc["file"];
+        file.as_str()
+    }
 }
+
+// -----------------------
+//       UNIT TESTS
+// -----------------------
 
 #[cfg(test)]
 mod tests {
@@ -66,6 +100,14 @@ mod tests {
         - 3.7.0
     lts: 3.8.0
     latest: 3.8.0
+    ";
+
+    static TEST_PACKAGE: &str = "
+    name: Python
+    version: 3.8.0
+    url: https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tar.xz
+    type: tar.xz
+    file: Python-3.8.0.tar.xz
     ";
 
     #[test]
@@ -107,5 +149,25 @@ mod tests {
         println!(":: Latest Version: {}", latest_version);
 
         assert_eq!(latest_version, "3.8.0");
+    }
+
+    #[test]
+    fn pack_parser_get_everything() {
+        let pack_parser = PackageParser::new(TEST_PACKAGE)
+            .expect("Could not create a package parser with the given string");
+        let name = pack_parser.get_name().unwrap();
+        let version = pack_parser.get_version().unwrap();
+        let url = pack_parser.get_ulr().unwrap();
+        let f_type = pack_parser.get_file_type().unwrap();
+        let file = pack_parser.get_file_name().unwrap();
+
+        assert_eq!(name, "Python");
+        assert_eq!(version, "3.8.0");
+        assert_eq!(
+            url,
+            "https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tar.xz"
+        );
+        assert_eq!(f_type, "tar.xz");
+        assert_eq!(file, "Python-3.8.0.tar.xz")
     }
 }
