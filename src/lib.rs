@@ -1,9 +1,11 @@
 extern crate dirs;
 
+mod errors;
 mod packages;
 mod repositories;
 mod yml_parser;
 
+use errors::{NoVersionFoundError, NoVersionSpecifiedError, PackageNotFoundError};
 use packages::Package;
 use repositories::Repo;
 use yml_parser::{MetadataParser, PackageParser};
@@ -26,20 +28,16 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     match command {
         "info" => generic_info(&repo, &config.desired_pkg),
         "details" => {
-            // TODO: do a better job with the error handling, maybe create a custom error type
-            let version = &config
-                .desired_pkg_version
-                .expect("A version of the package is needed to give details about it");
+            // Check if the user specified a version or not
+            let version = match &config.desired_pkg_version {
+                Some(string) => string,
+                None => return Err(Box::new(NoVersionSpecifiedError)),
+            };
             specific_info(&repo, &config.desired_pkg, version)
         }
+        // This will never happen, it's just here to exaust the match options
         _ => panic!("Could not match on the specified command"),
     }
-
-    // generic info for when the user doesn't sepcifies the version
-    // generic_info(repo, "Python")
-
-    // Info for when the user specifies a version of the package
-    // specific_info(&repo, "Python", "3.8.0")
 
     // let mut pkg = Package::new(
     //     "Python",
@@ -56,13 +54,15 @@ fn generic_info(repo: &Repo, program_name: &str) -> Result<(), Box<dyn Error>> {
     // Get the metadata parser and parse it
     let metadata = repo.get_program_metadata(program_name)?;
     let parser = MetadataParser::new(&metadata)?;
-    println!("Package: {}", program_name);
-    println!("Available versions: ");
+
     // Calculates the versions
     let versions = match parser.get_versions() {
         Some(vec) => vec,
-        None => panic!("No versions could be found!"), // TODO: do a better job with the error handling, maybe create a custom error type
+        None => return Err(Box::new(NoVersionFoundError)),
     };
+
+    println!("Package: {}", program_name);
+    println!("Available versions: ");
     // And print them
     for i in 0..versions.len() {
         println!(
@@ -72,8 +72,10 @@ fn generic_info(repo: &Repo, program_name: &str) -> Result<(), Box<dyn Error>> {
                 .expect("Error trying to access the versions of the package")
         );
     }
-    println!("LTS Version: {}", parser.get_lts_version().unwrap()); // TODO: do a better job with the error handling, maybe create a custom error type
-    println!("Latest Version: {}", parser.get_latest_version().unwrap()); // TODO: do a better job with the error handling, maybe create a custom error type
+    // The unwraps here are because, for the moment,
+    // a package will always have an LTS and a Latest value
+    println!("LTS Version: {}", parser.get_lts_version().unwrap());
+    println!("Latest Version: {}", parser.get_latest_version().unwrap());
 
     Ok(())
 }
@@ -87,10 +89,17 @@ fn specific_info(
     let pkg_data = repo.get_program_package(program_name, program_version)?;
     let parser = PackageParser::new(&pkg_data)?;
 
-    println!("Package: {}", parser.get_name().unwrap()); // TODO: do a better job with the error handling, maybe create a custom error type
+    let pkg_name = match parser.get_name() {
+        Some(name) => name,
+        None => return Err(Box::new(PackageNotFoundError)),
+    };
+
+    println!("Package: {}", pkg_name);
+    // With how the repo is designed, these unwraps will never fail
     println!("Version: {}", parser.get_version().unwrap());
     println!("Download Url: {}", parser.get_ulr().unwrap());
     println!("File Type: {}", parser.get_file_type().unwrap());
+    println!("File Name: {}", parser.get_file_name().unwrap());
 
     Ok(())
 }
