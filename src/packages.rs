@@ -93,7 +93,7 @@ impl Package {
                     "▹▹▹▹▸",
                     "▪▪▪▪▪",
                 ])
-                .template("{spinner:.blue} {msg}"),
+                .template("{spinner:.green} {msg}"),
         );
         pb.set_message(&format!("Downloading {}@{}...", self.name, self.version));
         pb

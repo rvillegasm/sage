@@ -26,30 +26,41 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // Decide which command to use
     let command: &str = config.command.as_ref();
     match command {
+        // get information about every version of said program
         "info" => generic_info(&repo, &config.desired_pkg),
+        // get info about a specific version of the program
         "details" => {
             // Check if the user specified a version or not
             let version = match &config.desired_pkg_version {
                 Some(string) => string,
                 None => return Err(Box::new(NoVersionSpecifiedError)),
             };
-            specific_info(&repo, &config.desired_pkg, version)
+            specific_info(&repo, &config.desired_pkg, version, true)?;
+            Ok(())
+        }
+        // just download a version of the program
+        "download" => {
+            let version = match &config.desired_pkg_version {
+                Some(string) => string,
+                None => return Err(Box::new(NoVersionSpecifiedError)),
+            };
+            let name = &config.desired_pkg;
+            // Create the package
+            let mut pkg = specific_info(&repo, name, version, false)?;
+            pkg.download(&config.download_dir)
         }
         // This will never happen, it's just here to exaust the match options
         _ => panic!("Could not match on the specified command"),
     }
-
-    // let mut pkg = Package::new(
-    //     "Python",
-    //     "3.8",
-    //     "https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tar.xz",
-    // );
-
-    // pkg.download(&config.download_dir)?;
-
-    // Ok(())
 }
 
+/// Gets the genral information about a package, like name, available versions
+/// lts version and latest version
+///
+/// # Errors
+/// The function will return an error if the remote package doesn't exists.
+/// Check out the documentation for `Repo::get_program_metadata` and `MetadataParser::new`
+/// to find out other reasons for this function to fail.
 fn generic_info(repo: &Repo, program_name: &str) -> Result<(), Box<dyn Error>> {
     // Get the metadata parser and parse it
     let metadata = repo.get_program_metadata(program_name)?;
@@ -80,11 +91,18 @@ fn generic_info(repo: &Repo, program_name: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Gets the specific information about a package, constructing and returning one
+///
+/// # Errors
+/// The function will return an error if the package doesen't exists.
+/// Check out the documentation for `Repo::get_program_package` and `PackageParser::new`
+/// to find out other reasons for this function to fail.
 fn specific_info(
     repo: &Repo,
     program_name: &str,
     program_version: &str,
-) -> Result<(), Box<dyn Error>> {
+    print_out_info: bool,
+) -> Result<Package, Box<dyn Error>> {
     // get the package data and parse it
     let pkg_data = repo.get_program_package(program_name, program_version)?;
     let parser = PackageParser::new(&pkg_data)?;
@@ -94,14 +112,21 @@ fn specific_info(
         None => return Err(Box::new(PackageNotFoundError)),
     };
 
-    println!("Package: {}", pkg_name);
-    // With how the repo is designed, these unwraps will never fail
-    println!("Version: {}", parser.get_version().unwrap());
-    println!("Download Url: {}", parser.get_ulr().unwrap());
-    println!("File Type: {}", parser.get_file_type().unwrap());
-    println!("File Name: {}", parser.get_file_name().unwrap());
+    // With how the repo (Arcanum) is designed, these unwraps will never fail
+    let pkg_version = parser.get_version().unwrap();
+    let pkg_url = parser.get_ulr().unwrap();
+    let pkg_type = parser.get_file_type().unwrap();
+    let pkg_file = parser.get_file_name().unwrap();
 
-    Ok(())
+    if print_out_info {
+        println!("Package: {}", pkg_name);
+        println!("Version: {}", pkg_version);
+        println!("Download Url: {}", pkg_url);
+        println!("File Type: {}", pkg_type);
+        println!("File Name: {}", pkg_file);
+    }
+
+    Ok(Package::new(pkg_name, pkg_version, pkg_url))
 }
 
 /// Configuration data structure that holds
@@ -119,10 +144,11 @@ pub struct Config {
 /// Checks if the specified command is supported by sage or not
 fn parse_commands(command: String) -> Result<String, &'static str> {
     // A set containing all the valid commands
-    const COMMANDS_QUANTITY: usize = 2;
+    const COMMANDS_QUANTITY: usize = 3; // NUMBER OF COMMANDS
     let mut command_set: HashSet<&str> = HashSet::with_capacity(COMMANDS_QUANTITY);
     command_set.insert("info");
     command_set.insert("details");
+    command_set.insert("download");
 
     // Check if the specified command is valid
     let command_str: &str = command.as_ref();
