@@ -1,6 +1,7 @@
 extern crate dirs;
 
 mod errors;
+mod install_utils;
 mod packages;
 mod repositories;
 mod yml_parser;

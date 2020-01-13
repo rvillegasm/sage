@@ -16,6 +16,12 @@ pub struct PackageParser {
     doc: Yaml,
 }
 
+/// Enum containing every available installation detail that a package
+/// can have in *Arcanum*
+pub enum InstallInfo {
+    Type, // for now, the installation type is the only one available
+}
+
 impl MetadataParser {
     /// Creates a new `MetadataParser`, instantly parsing the contents of a
     /// yaml-formatted string
@@ -84,6 +90,18 @@ impl PackageParser {
         let file = &self.doc["file"];
         file.as_str()
     }
+
+    /// Analyzes the install info and returns the desired specific info
+    pub fn get_installation_info(&self, desired_info: InstallInfo) -> Option<&str> {
+        let install_details = &self.doc["installation"];
+        // decide waht to do based on what the desireed info is
+        let info = match desired_info {
+            // the install type has been requested
+            InstallInfo::Type => install_details["type"].as_str(),
+        };
+        // return the info
+        info
+    }
 }
 
 // -----------------------
@@ -108,6 +126,8 @@ mod tests {
     url: https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tar.xz
     type: tar.xz
     file: Python-3.8.0.tar.xz
+    installation:
+        type: make
     ";
 
     #[test]
@@ -160,6 +180,9 @@ mod tests {
         let url = pack_parser.get_ulr().unwrap();
         let f_type = pack_parser.get_file_type().unwrap();
         let file = pack_parser.get_file_name().unwrap();
+        let install_type = pack_parser
+            .get_installation_info(InstallInfo::Type)
+            .unwrap();
 
         assert_eq!(name, "Python");
         assert_eq!(version, "3.8.0");
@@ -168,6 +191,7 @@ mod tests {
             "https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tar.xz"
         );
         assert_eq!(f_type, "tar.xz");
-        assert_eq!(file, "Python-3.8.0.tar.xz")
+        assert_eq!(file, "Python-3.8.0.tar.xz");
+        assert_eq!(install_type, "make");
     }
 }
