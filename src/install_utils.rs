@@ -12,6 +12,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::process::Command;
 
 /// General description of how a decoder must behave
 pub trait Decoder {
@@ -71,25 +72,60 @@ impl Decoder for TarGzDecoder {
     }
 }
 
+/// Command runner that abstracts the interaction with third-party
+/// programs that aid in the installation process, like *make*, *git*, etc
+pub enum CommandRunner {
+    Make(String, String), // args: program, sage_home_path
+                          // Git, // not implemented yet // TODO: Add other commands to the command runner, like git.
+}
+
+impl CommandRunner {
+    /// Run the specified command
+    pub fn run(&self) -> Result<(), Box<dyn Error>> {
+        match self {
+            // If the specified command is make
+            Self::Make(program, sage_home_path) => {
+                // create the ./configure command
+                let mut configure = Command::new("./configure");
+                configure
+                    .current_dir(format!("{}/downloads/{}", sage_home_path, program))
+                    .arg(format!("--prefix={}", sage_home_path))
+                    .arg(format!("--exec-prefix={}", sage_home_path))
+                    // run it
+                    .status()?;
+                // now create the make command
+                let mut make = Command::new("make");
+                make.current_dir(format!("{}/downloads/{}", sage_home_path, program));
+                // run make
+                make.status()?;
+                // now run make install
+                make.arg("install").status()?;
+
+                Ok(())
+            }
+        }
+    }
+}
+
 // #[cfg(test)]
 // mod tests {
 //     use super::*;
 
-// #[test]
-// fn tar_xz_decoded_successfully() {
-//     let decoder = TarXzDecoder::new();
-//     let path = std::path::PathBuf::from("/home/rvillegasm/.sage/downloads");
-//     let file = "/home/rvillegasm/.sage/downloads/Python-3.8.0.tar.xz";
+//     #[test]
+//     fn tar_xz_decoded_successfully() {
+//         let decoder = TarXzDecoder::new();
+//         let path = std::path::PathBuf::from("/home/rvillegasm/.sage/downloads");
+//         let file = "/home/rvillegasm/.sage/downloads/Python-3.8.0.tar.xz";
 
-//     decoder.decode(file, &path).unwrap();
-// }
+//         decoder.decode(file, &path).unwrap();
+//     }
 
-// #[test]
-// fn tar_gz_decoded_successfully() {
-//     let decoder = TarGzDecoder::new();
-//     let path = std::path::PathBuf::from("/home/rvillegasm/Downloads");
-//     let file = "/home/rvillegasm/Downloads/openjdk-11+28_linux-x64_bin.tar.gz";
+//     #[test]
+//     fn tar_gz_decoded_successfully() {
+//         let decoder = TarGzDecoder::new();
+//         let path = std::path::PathBuf::from("/home/rvillegasm/.sage/downloads");
+//         let file = "/home/rvillegasm/.sage/downloads/Python-3.8.1.tgz";
 
-//     decoder.decode(file, &path).unwrap();
-// }
+//         decoder.decode(file, &path).unwrap();
+//     }
 // }
