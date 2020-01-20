@@ -127,7 +127,13 @@ fn specific_info(
         println!("File Name: {}", pkg_file);
     }
 
-    Ok(Package::new(pkg_name, pkg_version, pkg_url))
+    Ok(Package::new(
+        pkg_name,
+        pkg_version,
+        pkg_url,
+        pkg_type,
+        pkg_file,
+    )?)
 }
 
 /// Configuration data structure that holds

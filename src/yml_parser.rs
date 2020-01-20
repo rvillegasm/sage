@@ -22,6 +22,8 @@ pub enum InstallInfo {
     Type, // for now, the installation type is the only one available
 }
 
+// --------- IMPLEMENTATIONS ---------
+
 impl MetadataParser {
     /// Creates a new `MetadataParser`, instantly parsing the contents of a
     /// yaml-formatted string

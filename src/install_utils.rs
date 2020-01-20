@@ -14,6 +14,17 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 
+/// Enum containing every single supported installation type
+pub enum InstallTypes {
+    MakeInstall, // TODO: Add single file binary installation
+}
+
+/// Enum cotaining every single file type that can be downloaded
+pub enum FileTypes {
+    TarXz,
+    TarGz,
+}
+
 /// General description of how a decoder must behave
 pub trait Decoder {
     fn new() -> Self;

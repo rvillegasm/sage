@@ -39,3 +39,39 @@ impl fmt::Display for PackageNotFoundError {
         write!(f, "The specified package could not be found.")
     }
 }
+
+/// Error for when the file type is not supported
+#[derive(Debug)]
+pub struct FileTypeNotSupportedError;
+
+impl Error for FileTypeNotSupportedError {}
+
+impl fmt::Display for FileTypeNotSupportedError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "The specified file type is not supported.")
+    }
+}
+
+/// Error for when a decoder was expected but not given
+#[derive(Debug)]
+pub struct DecoderNotFoundError;
+
+impl Error for DecoderNotFoundError {}
+
+impl fmt::Display for DecoderNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "A decoder was Expected, but none was found.")
+    }
+}
+
+/// Error for when a path was expexted but not given
+#[derive(Debug)]
+pub struct PathNotFoundError;
+
+impl Error for PathNotFoundError {}
+
+impl fmt::Display for PathNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "A path was Expected, but none was found.")
+    }
+}
