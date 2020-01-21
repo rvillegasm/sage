@@ -19,7 +19,8 @@ pub struct PackageParser {
 /// Enum containing every available installation detail that a package
 /// can have in *Arcanum*
 pub enum InstallInfo {
-    Type, // for now, the installation type is the only one available
+    Type,   // Installation procedure, like make, single binary, etc
+    Target, // Directory in which the install procedure will be applied
 }
 
 // --------- IMPLEMENTATIONS ---------
@@ -100,6 +101,7 @@ impl PackageParser {
         let info = match desired_info {
             // the install type has been requested
             InstallInfo::Type => install_details["type"].as_str(),
+            InstallInfo::Target => install_details["target"].as_str(),
         };
         // return the info
         info

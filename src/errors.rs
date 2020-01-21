@@ -52,6 +52,18 @@ impl fmt::Display for FileTypeNotSupportedError {
     }
 }
 
+/// Error for when the install type is not supported
+#[derive(Debug)]
+pub struct InstallTypeNotSupportedError;
+
+impl Error for InstallTypeNotSupportedError {}
+
+impl fmt::Display for InstallTypeNotSupportedError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "The specified install type is not supported.")
+    }
+}
+
 /// Error for when a decoder was expected but not given
 #[derive(Debug)]
 pub struct DecoderNotFoundError;

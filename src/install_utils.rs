@@ -85,12 +85,12 @@ impl Decoder for TarGzDecoder {
 
 /// Command runner that abstracts the interaction with third-party
 /// programs that aid in the installation process, like *make*, *git*, etc
-pub enum CommandRunner {
-    Make(String, String), // args: program, sage_home_path
-                          // Git, // not implemented yet // TODO: Add other commands to the command runner, like git.
+pub enum CommandRunner<'a> {
+    Make(&'a str, &'a str), // args: program, sage_home_path
+                            // Git, // not implemented yet // TODO: Add other commands to the command runner, like git.
 }
 
-impl CommandRunner {
+impl<'a> CommandRunner<'a> {
     /// Run the specified command
     pub fn run(&self) -> Result<(), Box<dyn Error>> {
         match self {
@@ -103,14 +103,14 @@ impl CommandRunner {
                     .arg(format!("--prefix={}", sage_home_path))
                     .arg(format!("--exec-prefix={}", sage_home_path))
                     // run it
-                    .status()?;
+                    .output()?;
                 // now create the make command
                 let mut make = Command::new("make");
                 make.current_dir(format!("{}/downloads/{}", sage_home_path, program));
                 // run make
-                make.status()?;
+                make.output()?;
                 // now run make install
-                make.arg("install").status()?;
+                make.arg("install").output()?;
 
                 Ok(())
             }

@@ -7,9 +7,10 @@ mod repositories;
 mod yml_parser;
 
 use errors::{NoVersionFoundError, NoVersionSpecifiedError, PackageNotFoundError};
+use install_utils::{Decoder, FileTypes, TarGzDecoder, TarXzDecoder};
 use packages::Package;
 use repositories::Repo;
-use yml_parser::{MetadataParser, PackageParser};
+use yml_parser::{InstallInfo, MetadataParser, PackageParser};
 
 use std::collections::HashSet;
 use std::env;
@@ -47,8 +48,40 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             };
             let name = &config.desired_pkg;
             // Create the package
-            let mut pkg = specific_info(&repo, name, version, false)?;
+            let pkg = specific_info(&repo, name, version, false)?;
             pkg.download(&config.download_dir)
+        }
+        // download and install a version of the program
+        "install" => {
+            let version = match &config.desired_pkg_version {
+                Some(string) => string,
+                None => return Err(Box::new(NoVersionSpecifiedError)),
+            };
+            let name = &config.desired_pkg;
+            // create the package
+            let pkg = specific_info(&repo, name, version, false)?;
+            // download
+            pkg.download(&config.download_dir)?;
+            // analyze if a decoder and the sage_home_path is needed or not
+            match pkg.get_file_type() {
+                // TODO: find a way of eliminating this code repetition (using polymorphism or trait objects)
+                FileTypes::TarGz => {
+                    let decoder = Some(TarGzDecoder::new());
+                    pkg.install(
+                        &config.download_dir,
+                        config.download_dir.parent().unwrap().to_str(),
+                        decoder,
+                    )
+                }
+                FileTypes::TarXz => {
+                    let decoder = Some(TarXzDecoder::new());
+                    pkg.install(
+                        &config.download_dir,
+                        config.download_dir.parent().unwrap().to_str(),
+                        decoder,
+                    )
+                }
+            }
         }
         // This will never happen, it's just here to exaust the match options
         _ => panic!("Could not match on the specified command"),
@@ -118,6 +151,8 @@ fn specific_info(
     let pkg_url = parser.get_ulr().unwrap();
     let pkg_type = parser.get_file_type().unwrap();
     let pkg_file = parser.get_file_name().unwrap();
+    let pkg_install_type = parser.get_installation_info(InstallInfo::Type).unwrap();
+    let pkg_install_target = parser.get_installation_info(InstallInfo::Target).unwrap();
 
     if print_out_info {
         println!("Package: {}", pkg_name);
@@ -125,6 +160,7 @@ fn specific_info(
         println!("Download Url: {}", pkg_url);
         println!("File Type: {}", pkg_type);
         println!("File Name: {}", pkg_file);
+        println!("Installation: {}", pkg_install_type);
     }
 
     Ok(Package::new(
@@ -133,6 +169,8 @@ fn specific_info(
         pkg_url,
         pkg_type,
         pkg_file,
+        pkg_install_type,
+        pkg_install_target,
     )?)
 }
 
@@ -151,11 +189,12 @@ pub struct Config {
 /// Checks if the specified command is supported by sage or not
 fn parse_commands(command: String) -> Result<String, &'static str> {
     // A set containing all the valid commands
-    const COMMANDS_QUANTITY: usize = 3; // NUMBER OF COMMANDS
+    const COMMANDS_QUANTITY: usize = 4; // NUMBER OF COMMANDS
     let mut command_set: HashSet<&str> = HashSet::with_capacity(COMMANDS_QUANTITY);
     command_set.insert("info");
     command_set.insert("details");
     command_set.insert("download");
+    command_set.insert("install");
 
     // Check if the specified command is valid
     let command_str: &str = command.as_ref();

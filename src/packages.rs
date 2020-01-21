@@ -1,14 +1,11 @@
 extern crate indicatif;
 extern crate reqwest;
 
-use crate::install_utils::CommandRunner;
-use crate::install_utils::Decoder;
-use crate::install_utils::FileTypes;
-use crate::install_utils::InstallTypes;
-
-use crate::errors::DecoderNotFoundError;
-use crate::errors::FileTypeNotSupportedError;
-use crate::errors::PathNotFoundError;
+use crate::errors::{
+    DecoderNotFoundError, FileTypeNotSupportedError, InstallTypeNotSupportedError,
+    PathNotFoundError,
+};
+use crate::install_utils::{CommandRunner, Decoder, FileTypes, InstallTypes};
 
 use std::error::Error;
 use std::fs::File;
@@ -21,6 +18,8 @@ pub struct Package {
     url: String,
     file_type: FileTypes,
     file: String,
+    install_type: InstallTypes,
+    install_target: String,
 }
 
 // Public API for Package
@@ -33,11 +32,19 @@ impl Package {
         url: &str,
         file_type: &str,
         file_name: &str,
+        install_type: &str,
+        install_target: &str,
     ) -> Result<Package, Box<dyn Error>> {
+        // Create the FileType instance depending on the given string
         let file_type_enum = match file_type {
             "tar.xz" => FileTypes::TarXz,
             "tar.gz" => FileTypes::TarGz,
             _ => return Err(Box::new(FileTypeNotSupportedError)),
+        };
+        // Create the InstallTypes instance depending on the given string
+        let install_type_enum = match install_type {
+            "make" => InstallTypes::MakeInstall,
+            _ => return Err(Box::new(InstallTypeNotSupportedError)),
         };
         Ok(Package {
             name: name.to_string(),
@@ -45,6 +52,8 @@ impl Package {
             url: url.to_string(),
             file_type: file_type_enum,
             file: file_name.to_string(),
+            install_type: install_type_enum,
+            install_target: install_target.to_string(),
         })
     }
 
@@ -55,7 +64,7 @@ impl Package {
     /// the `copy_to` method of `reqwest::Response`
     /// and the `create` method of `std::fs::File` to see
     /// the conditions in which this function could return an error.
-    pub fn download(&mut self, download_dir: &Path) -> Result<(), Box<dyn Error>> {
+    pub fn download(&self, download_dir: &Path) -> Result<(), Box<dyn Error>> {
         // Configure the Progress bar
         let pb = self.start_download_progress();
         // Specify the target url
@@ -87,11 +96,10 @@ impl Package {
         download_dir: &Path,
         sage_home_path: Option<&str>,
         decoder: Option<D>,
-        install_type: InstallTypes,
     ) -> Result<(), Box<dyn Error>> {
         // Start the install progress bar
         let pb = self.start_install_progress();
-        // analyze the type of the downloaded file
+        // analyze the type of the DOWNLOADED file
         match self.file_type {
             FileTypes::TarGz | FileTypes::TarXz => {
                 // In this case we want to DECODE the tar archives so...
@@ -100,21 +108,22 @@ impl Package {
                     return Err(Box::new(DecoderNotFoundError));
                 } else {
                     // decode the file
-                    decoder.unwrap().decode(&self.file, download_dir)?
+                    decoder.unwrap().decode(
+                        download_dir.join(&self.file).to_str().unwrap(),
+                        download_dir,
+                    )?;
                 }
             } // TODO: Other file types...
         }
-        // analyze the type of installation process
-        match install_type {
+        // analyze the type of INSTALLATION process
+        match self.install_type {
             InstallTypes::MakeInstall => {
                 // Run the 'Make' command using the CommandRunner
                 if let None = sage_home_path {
                     return Err(Box::new(PathNotFoundError));
                 } else {
-                    let make_cmd = CommandRunner::Make(
-                        self.name.to_string(),
-                        sage_home_path.unwrap().to_string(),
-                    );
+                    let make_cmd =
+                        CommandRunner::Make(&self.install_target, sage_home_path.unwrap());
                     make_cmd.run()?
                 }
             }
@@ -122,6 +131,10 @@ impl Package {
         // end the progress bar
         self.finish_install_progress(pb);
         Ok(())
+    }
+
+    pub fn get_file_type(&self) -> &FileTypes {
+        return &self.file_type;
     }
 }
 
@@ -170,7 +183,10 @@ impl Package {
                 ])
                 .template("{spinner:.green} {msg}"),
         );
-        pb.set_message(&format!("Installing {}@{}...", self.name, self.version));
+        pb.set_message(&format!(
+            "Installing {}@{}. This may take a while...",
+            self.name, self.version
+        ));
         pb
     }
 
@@ -194,6 +210,8 @@ mod tests {
             "https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tar.xz",
             "tar.xz",
             "Python-3.8.0.tar.xz",
+            "make",
+            "Python-3.8.0",
         )
         .unwrap();
 
@@ -209,5 +227,6 @@ mod tests {
         };
         assert_eq!(f_type.unwrap(), String::from("tar.xz"));
         assert_eq!(pkg.file, String::from("Python-3.8.0.tar.xz"));
+        assert_eq!(pkg.install_target, String::from("Python-3.8.0"));
     }
 }
