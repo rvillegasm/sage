@@ -1,4 +1,5 @@
 extern crate flate2;
+extern crate fs_extra;
 extern crate tar;
 extern crate tempfile;
 extern crate xz2;
@@ -16,7 +17,8 @@ use std::process::Command;
 
 /// Enum containing every single supported installation type
 pub enum InstallTypes {
-    MakeInstall, // TODO: Add single file binary installation
+    MakeInstall,
+    Bin,
 }
 
 /// Enum cotaining every single file type that can be downloaded
@@ -86,7 +88,8 @@ impl Decoder for TarGzDecoder {
 /// Command runner that abstracts the interaction with third-party
 /// programs that aid in the installation process, like *make*, *git*, etc
 pub enum CommandRunner<'a> {
-    Make(&'a str, &'a str), // args: program, sage_home_path
+    Make(&'a str, &'a str), // args: install_target, sage_home_path
+    Bin(&'a str, &'a str),  // args: install_target, sage_home_path
                             // Git, // not implemented yet // TODO: Add other commands to the command runner, like git.
 }
 
@@ -100,8 +103,11 @@ impl<'a> CommandRunner<'a> {
                 let mut configure = Command::new("./configure");
                 configure
                     .current_dir(format!("{}/downloads/{}", sage_home_path, program))
-                    .arg(format!("--prefix={}", sage_home_path))
-                    .arg(format!("--exec-prefix={}", sage_home_path))
+                    .arg(format!("--prefix={}/programs/{}", sage_home_path, program))
+                    .arg(format!(
+                        "--exec-prefix={}/programs/{}",
+                        sage_home_path, program
+                    ))
                     // run it
                     .output()?;
                 // now create the make command
@@ -111,6 +117,23 @@ impl<'a> CommandRunner<'a> {
                 make.output()?;
                 // now run make install
                 make.arg("install").output()?;
+
+                Ok(())
+            }
+            // If the specified command is a binary copy
+            Self::Bin(install_target, sage_home_path) => {
+                // Copy everything from the install_target dir
+                // to the sage_home_path directory
+                let mut copy_options = fs_extra::dir::CopyOptions::new();
+                copy_options.overwrite = true;
+                // copy_options.copy_inside = true;
+                let mut from_paths = Vec::new();
+                // copy everything inside the install target dir
+                from_paths.push(format!("{}/downloads/{}", sage_home_path, install_target));
+                // path to which the files will be copied to
+                let copy_target_path = format!("{}/programs", sage_home_path);
+                // copy them
+                fs_extra::copy_items(&from_paths, &copy_target_path, &copy_options)?;
 
                 Ok(())
             }

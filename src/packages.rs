@@ -42,8 +42,10 @@ impl Package {
             _ => return Err(Box::new(FileTypeNotSupportedError)),
         };
         // Create the InstallTypes instance depending on the given string
+        // TODO: Add bin install type
         let install_type_enum = match install_type {
             "make" => InstallTypes::MakeInstall,
+            "bin" => InstallTypes::Bin,
             _ => return Err(Box::new(InstallTypeNotSupportedError)),
         };
         Ok(Package {
@@ -125,6 +127,15 @@ impl Package {
                     let make_cmd =
                         CommandRunner::Make(&self.install_target, sage_home_path.unwrap());
                     make_cmd.run()?
+                }
+            }
+            InstallTypes::Bin => {
+                // copy everything in the target directory to sage_home_path
+                if let None = sage_home_path {
+                    return Err(Box::new(PathNotFoundError));
+                } else {
+                    let bin_cmd = CommandRunner::Bin(&self.install_target, sage_home_path.unwrap());
+                    bin_cmd.run()?
                 }
             }
         }

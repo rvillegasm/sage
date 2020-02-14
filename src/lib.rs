@@ -257,7 +257,7 @@ impl Config {
         };
 
         let download_dir: PathBuf = sage_home.join("downloads");
-        let install_dir: PathBuf = sage_home.join("bin");
+        let install_dir: PathBuf = sage_home.join("programs");
 
         Ok(Config {
             download_dir,
