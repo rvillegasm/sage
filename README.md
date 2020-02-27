@@ -41,7 +41,6 @@ A simple package manager for Linux, macOs and Windows.
 * [Contributing](#contributing)
 * [License](#license)
 * [Contact](#contact)
-* [Acknowledgements](#acknowledgements)
 
 
 
@@ -75,59 +74,71 @@ then why bother creating a new one? This sounds like a waste of time, I'll
 just leave".* **Wait**! Don't go anywhere just yet and hear me out, because
 there is a very good reason for another package manager to exist.
 
-<TODO talk about the fact that there is no cross platform spm and 
-about the fact that it runs fast and securely>
+Most package managers out there only work for a specific platform: *apt* 
+only works on debian based systems, *pacman* only works on the mighty
+Arch system, and *homebrew* only works on unix-based systems. That means that
+if you are one of those people that uses several operating systems at the
+same time, you would have to get used to working with two to three
+different pieces of software to manage every single program that you use.
+
+Sage, on the other hand, works fine on every mayor OS out there. Linux? Check. MacOs? Check. Windows? Check. And, the best part of it is that it
+works the same no matter the platform.
 
 ### Built With
-This section should list any major frameworks that you built your project using. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-* [Bootstrap](https://getbootstrap.com)
-* [JQuery](https://jquery.com)
-* [Laravel](https://laravel.com)
-
+Sage was built using the [Rust](https://www.rust-lang.org/)
+programming language.
 
 <!-- GETTING STARTED -->
 ## Getting Started
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-```sh
-npm install npm@latest -g
-```
+* Rust: To get Sage up and running in your system you first have to install 
+  Rust. I recommend using the 
+  [rustup](https://www.rust-lang.org/tools/install) 
+  tool provided by the Rust developers.
 
 ### Installation
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-```sh
-git clone https://github.com/your_username_/Project-Name.git
+Then, after that you should run the following command:
+```bash
+$ cargo install --git https://github.com/rvillegasm/sage
 ```
-3. Install NPM packages
-```sh
-npm install
-```
-4. Enter your API in `config.js`
-```JS
-const API_KEY = 'ENTER YOUR API';
-```
+That will clone the repo, compile it and add it to your PATH.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+### Getting information about a certain package
+```bash
+$ sage info <name-of-package>
+```
 
+### Getting specific details about a version of a package
+```bash
+$ sage details <name-of-package>@<version>
+```
 
+### Downloading a version of a package
+```bash
+$ sage download <name-of-package>@<version>
+```
+
+### Downloading and installing a version of a package
+```bash
+$ sage install <name-of-package>@<version>
+```
 
 <!-- ROADMAP -->
 ## Roadmap
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/rvillegasm/sage/issues) for a list
+of proposed features (and known issues).
 
+The proyect is still in early development, and MANY more features
+and helpful documentation will be introduced in the comming months.
 
 <!-- CONTRIBUTING -->
 ## Contributing
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Please, if you have an idea about some new feature, and you want to add
+it to Sage, please do so!
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -141,20 +152,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 <!-- CONTACT -->
 ## Contact
-Rafael Villegas Michel - [@your_twitter](https://twitter.com/your_username) - rafa.villegas.michel@gmail.com
+Rafael Villegas Michel - rafa.villegas.michel@gmail.com
 
 Project Link: [https://github.com/rvillegasm/sage](https://github.com/rvillegasm/sage)
-
-<!-- ACKNOWLEDGEMENTS -->
-## Acknowledgements
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Img Shields](https://shields.io)
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Pages](https://pages.github.com)
-* [Animate.css](https://daneden.github.io/animate.css)
-* [Loaders.css](https://connoratherton.com/loaders)
-* [Slick Carousel](https://kenwheeler.github.io/slick)
-* [Smooth Scroll](https://github.com/cferdinandi/smooth-scroll)
-* [Sticky Kit](http://leafo.net/sticky-kit)
-* [JVectorMap](http://jvectormap.com)
-* [Font Awesome](https://fontawesome.com)
